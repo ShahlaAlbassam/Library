@@ -151,7 +151,6 @@ class BorrowingsApp(ctk.CTk):
         return books if books else ["No Books in DB"]
 
     def load_active_borrowings(self):
-        # Clear previous widgets in scrollable frame
         for widget in self.records_scroll.winfo_children():
             widget.destroy()
 
@@ -161,14 +160,19 @@ class BorrowingsApp(ctk.CTk):
                 cursor = conn.cursor()
                 cursor.execute("SELECT Borrow_ID, member_name, book_title, borrow_date, due_date, status FROM borrow")
                 rows = cursor.fetchall()
-
-                y_offset = 5
-                for row in rows:
-                    row_text = f"ID: {row[0]} | {row[1]} | {row[2]} | {row[3]} | {row[4]} | {row[5]}"
-                    lbl = ctk.CTkLabel(self.records_scroll, text=row_text, font=ctk.CTkFont(size=11), text_color="#3D291D")
-                    lbl.place(x=10, y=y_offset)
-                    y_offset += 30
                 conn.close()
+
+                for row in rows:
+                    row_text = f"REF: {row[0]}  |  {row[1]}  |  {row[2]}  |  Issued: {row[3]}  |  Due: {row[4]}  |  [{row[5]}]"
+                    lbl = ctk.CTkLabel(
+                        self.records_scroll,
+                        text=row_text,
+                        font=ctk.CTkFont(size=11),
+                        text_color="#3D291D",
+                        anchor="w"
+                    )
+                    lbl.pack(fill="x", padx=5, pady=4)
+
             except Exception as e:
                 print(f"Error loading records: {e}")
 
