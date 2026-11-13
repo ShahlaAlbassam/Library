@@ -47,27 +47,35 @@ class BorrowingsApp(ctk.CTk):
         self.member_label = ctk.CTkLabel(self.form_frame, text="Select member *", font=ctk.CTkFont(size=12), text_color="#555")
         self.member_label.place(x=30, y=70)
 
-        self.members_list = self.fetch_members()
+        self.members_mapping = self.fetch_members_dict()
+        members_list_val = list(self.members_mapping.keys()) if self.members_mapping else ["No members found"]
+
         self.member_dropdown = ctk.CTkComboBox(
             self.form_frame,
-            values=self.members_list if self.members_list else ["No members found"],
+            values=members_list_val,
             width=340, height=35,
             fg_color="#F9F9F9", border_color="#E0D6CE"
         )
         self.member_dropdown.place(x=30, y=95)
+        if members_list_val:
+            self.member_dropdown.set(members_list_val[0])
 
         # Select Book Dropdown
         self.book_label = ctk.CTkLabel(self.form_frame, text="Select book *", font=ctk.CTkFont(size=12), text_color="#555")
         self.book_label.place(x=30, y=150)
 
-        self.books_list = self.fetch_books()
+        self.books_mapping = self.fetch_books_dict()
+        books_list_val = list(self.books_mapping.keys()) if self.books_mapping else ["No books found"]
+
         self.book_dropdown = ctk.CTkComboBox(
             self.form_frame,
-            values=self.books_list if self.books_list else ["No books found"],
+            values=books_list_val,
             width=340, height=35,
             fg_color="#F9F9F9", border_color="#E0D6CE"
         )
         self.book_dropdown.place(x=30, y=175)
+        if books_list_val:
+            self.book_dropdown.set(books_list_val[0])
 
         # Date Entries
         self.issue_date_label = ctk.CTkLabel(self.form_frame, text="Issue date", font=ctk.CTkFont(size=12), text_color="#555")
@@ -122,33 +130,35 @@ class BorrowingsApp(ctk.CTk):
 
         self.load_active_borrowings()
 
-    def fetch_members(self):
+    def fetch_members_dict(self):
         conn = get_connection()
-        members = []
+        members_dict = {}
         if conn:
             try:
                 cursor = conn.cursor()
-                cursor.execute("SELECT Member_name FROM Member")
+                cursor.execute("SELECT Member_id, Member_name FROM Member")
                 result = cursor.fetchall()
-                members = [row[0] for row in result]
+                for row in result:
+                    members_dict[f"{row[0]} - {row[1]}"] = row[0]
                 conn.close()
             except Exception as e:
                 print(f"Error fetching members: {e}")
-        return members if members else ["No Members in DB"]
+        return members_dict
 
-    def fetch_books(self):
+    def fetch_books_dict(self):
         conn = get_connection()
-        books = []
+        books_dict = {}
         if conn:
             try:
                 cursor = conn.cursor()
-                cursor.execute("SELECT title FROM books")
+                cursor.execute("SELECT book_id, title FROM books")
                 result = cursor.fetchall()
-                books = [row[0] for row in result]
+                for row in result:
+                    books_dict[f"{row[0]} - {row[1]}"] = row[0]
                 conn.close()
             except Exception as e:
                 print(f"Error fetching books: {e}")
-        return books if books else ["No Books in DB"]
+        return books_dict
 
     def load_active_borrowings(self):
         for widget in self.records_scroll.winfo_children():
@@ -158,41 +168,74 @@ class BorrowingsApp(ctk.CTk):
         if conn:
             try:
                 cursor = conn.cursor()
-                cursor.execute("SELECT Borrow_ID, member_name, book_title, borrow_date, due_date, status FROM borrow")
+                query = """
+                    SELECT b.Borrow_ID, m.Member_name, bk.title, b.borrow_date, b.due_date, b.status 
+                    FROM borrow b
+                    JOIN Member m ON b.Member_id = m.Member_id
+                    JOIN books bk ON b.book_id = bk.book_id
+                """
+                cursor.execute(query)
                 rows = cursor.fetchall()
                 conn.close()
 
+                x_positions = [10, 80, 180, 310, 390, 470]
+
                 for row in rows:
-                    row_text = f"REF: {row[0]}  |  {row[1]}  |  {row[2]}  |  Issued: {row[3]}  |  Due: {row[4]}  |  [{row[5]}]"
-                    lbl = ctk.CTkLabel(
-                        self.records_scroll,
-                        text=row_text,
-                        font=ctk.CTkFont(size=11),
-                        text_color="#3D291D",
-                        anchor="w"
-                    )
-                    lbl.pack(fill="x", padx=5, pady=4)
+                    # إنشاء إطار لكل صف لتنسيق البيانات بشكل مرتب تحت العناوين
+                    row_frame = ctk.CTkFrame(self.records_scroll, width=510, height=36, fg_color="#F9F9F9", corner_radius=6)
+                    row_frame.pack(fill="x", pady=3)
+                    row_frame.pack_propagate(False)
+
+                    # تقصير عنوان الكتاب إذا كان طويلاً لكي لا يتداخل مع الأعمدة المجاورة
+                    book_title = str(row[2])
+                    if len(book_title) > 12:
+                        book_title = book_title[:10] + "..."
+
+                    row_data = [
+                        str(row[0]),          # REF
+                        str(row[1]),          # MEMBER
+                        book_title,           # BOOK TITLE
+                        str(row[3]),          # ISSUED
+                        str(row[4]),          # DUE DATE
+                        str(row[5])           # STATUS
+                    ]
+
+                    for i, val in enumerate(row_data):
+                        lbl = ctk.CTkLabel(
+                            row_frame,
+                            text=val,
+                            font=ctk.CTkFont(size=11),
+                            text_color="#3D291D"
+                        )
+                        lbl.place(x=x_positions[i], y=7)
 
             except Exception as e:
                 print(f"Error loading records: {e}")
 
     def issue_book_action(self):
-        selected_member = self.member_dropdown.get()
-        selected_book = self.book_dropdown.get()
+        selected_member_str = self.member_dropdown.get()
+        selected_book_str = self.book_dropdown.get()
         issue_date = self.issue_date_entry.get()
         due_date = self.due_date_entry.get()
+
+        if not selected_member_str or not selected_book_str or "No" in selected_member_str:
+            print("Please select a valid member and book.")
+            return
+
+        member_id = self.members_mapping.get(selected_member_str)
+        book_id = self.books_mapping.get(selected_book_str)
 
         conn = get_connection()
         if conn:
             try:
                 cursor = conn.cursor()
-                query = "INSERT INTO borrow (member_name, book_title, borrow_date, due_date, status) VALUES (%s, %s, %s, %s, %s)"
-                values = (selected_member, selected_book, issue_date, due_date, "Active")
+                query = "INSERT INTO borrow (Member_id, book_id, borrow_date, due_date, status) VALUES (%s, %s, %s, %s, %s)"
+                values = (member_id, book_id, issue_date, due_date, "Active")
                 cursor.execute(query, values)
                 conn.commit()
                 conn.close()
                 print("Book issued successfully!")
-                self.load_active_borrowings() # Refresh table records
+                self.load_active_borrowings()
             except Exception as e:
                 print(f"Error issuing book: {e}")
 
@@ -200,4 +243,3 @@ class BorrowingsApp(ctk.CTk):
 if __name__ == "__main__":
     app = BorrowingsApp()
     app.mainloop()
-
