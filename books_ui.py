@@ -8,7 +8,7 @@ class BooksUI:
 
     def __init__(self, root):
         self.root = root
-        self.root.title("BookHaven - Books Management")
+        self.root.title("Book Heaven - Books Management")
         self.root.geometry("1100x750")
 
         self.bg_color = "#F5EBE0"
@@ -19,6 +19,7 @@ class BooksUI:
 
         self.root.configure(bg=self.bg_color)
         self.selected_id = None
+        self.all_records = []  
 
         style = ttk.Style()
         style.theme_use("clam")
@@ -117,9 +118,24 @@ class BooksUI:
                                                                                                           ipadx=5,
                                                                                                           ipady=3)
 
-        collection_label = tk.Label(root, text="EXPLORE THE COLLECTION", font=("Arial", 12, "bold"), bg=self.bg_color,
-                                    fg=self.text_color)
-        collection_label.pack(anchor="w", padx=20, pady=(5, 5))
+        
+        collection_header = tk.Frame(root, bg=self.bg_color)
+        collection_header.pack(fill="x", padx=20, pady=(5, 5))
+
+        tk.Label(
+            collection_header,
+            text="EXPLORE THE COLLECTION",
+            font=("Arial", 12, "bold"),
+            bg=self.bg_color,
+            fg=self.text_color
+        ).pack(side="left")
+
+        ttk.Button(
+            collection_header,
+            text="See All →",
+            command=self.open_all_books_window,
+            style="Custom.TButton"
+        ).pack(side="right", ipadx=6, ipady=2)
 
         self.cards_frame = tk.Frame(root, bg=self.bg_color)
         self.cards_frame.pack(fill="x", padx=20, pady=5)
@@ -162,6 +178,83 @@ class BooksUI:
 
         self.load_books()
 
+    def create_book_card(self, parent, row_data, grid_row, grid_col):
+        book_id, title, author, category, status = row_data
+
+        card = tk.Frame(parent, bg=self.card_bg, width=320, height=105, relief="solid", bd=1)
+        card.grid(row=grid_row, column=grid_col, padx=5, pady=2)
+        card.pack_propagate(False)
+
+        
+        cover_box = tk.Frame(card, bg=self.btn_color, width=65, height=85)
+        cover_box.place(x=10, y=10)
+        cover_box.pack_propagate(False)
+
+        short_title = title if len(title) <= 18 else title[:16] + "..."
+        tk.Label(
+            cover_box,
+            text=short_title,
+            fg="white",
+            bg=self.btn_color,
+            font=("Arial", 8, "bold"),
+            wraplength=55,
+            justify="center"
+        ).pack(expand=True, padx=2, pady=2)
+
+        
+        tk.Label(card, text=category.upper() if category else "GENERAL", font=("Arial", 8, "bold"),
+                 bg=self.card_bg, fg=self.sub_text).place(x=85, y=12)
+
+        title_text = title if len(title) < 20 else title[:18] + "..."
+        tk.Label(card, text=title_text, font=("Arial", 10, "bold"), bg=self.card_bg, fg=self.text_color).place(
+            x=85, y=32)
+
+        author_text = f"By {author}" if len(author) < 20 else f"By {author[:15]}..."
+        tk.Label(card, text=author_text, font=("Arial", 9), bg=self.card_bg, fg=self.sub_text).place(x=85, y=55)
+
+        status_text = f"Status: {status}"
+        tk.Label(card, text=status_text, font=("Arial", 8), bg=self.card_bg,
+                 fg="#A93226" if status == "Borrowed" else "#196F3D").place(x=85, y=80)
+
+    def open_all_books_window(self):
+        if not self.all_records:
+            messagebox.showinfo("Collection", "No books available in the collection.")
+            return
+
+        popup = tk.Toplevel(self.root)
+        popup.title("BookHaven - Full Book Collection")
+        popup.geometry("1040x600")
+        popup.configure(bg=self.bg_color)
+
+        tk.Label(
+            popup,
+            text=f"ALL BOOKS IN COLLECTION ({len(self.all_records)} Books)",
+            font=("Arial", 16, "bold"),
+            bg=self.bg_color,
+            fg=self.text_color
+        ).pack(anchor="w", padx=25, pady=15)
+
+        canvas = tk.Canvas(popup, bg=self.bg_color, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(popup, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg=self.bg_color)
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True, padx=20, pady=10)
+        scrollbar.pack(side="right", fill="y")
+
+        
+        for idx, row in enumerate(self.all_records):
+            r = idx // 3
+            c = idx % 3
+            self.create_book_card(scrollable_frame, row, r, c)
+
     def load_books(self):
         conn = None
         cursor = None
@@ -173,6 +266,7 @@ class BooksUI:
             cursor = conn.cursor()
             cursor.execute("SELECT book_id, title, author, category, status FROM books")
             records = cursor.fetchall()
+            self.all_records = records  
 
             self.book_table.delete(*self.book_table.get_children())
             for row in records:
@@ -181,43 +275,9 @@ class BooksUI:
             for widget in self.cards_frame.winfo_children():
                 widget.destroy()
 
+          
             for i, row in enumerate(records[:3]):
-                book_id, title, author, category, status = row
-
-                card = tk.Frame(self.cards_frame, bg=self.card_bg, width=320, height=105, relief="solid", bd=1)
-                card.grid(row=0, column=i, padx=5, pady=2)
-                card.pack_propagate(False)
-
-                # أيقونة غلاف الكتاب البنية مع كتابة العنوان بداخلها
-                cover_box = tk.Frame(card, bg=self.btn_color, width=65, height=85)
-                cover_box.place(x=10, y=10)
-                cover_box.pack_propagate(False)
-
-                short_title = title if len(title) <= 18 else title[:16] + "..."
-                tk.Label(
-                    cover_box,
-                    text=short_title,
-                    fg="white",
-                    bg=self.btn_color,
-                    font=("Arial", 8, "bold"),
-                    wraplength=55,
-                    justify="center"
-                ).pack(expand=True, padx=2, pady=2)
-
-                # تفاصيل الكتاب بجانب الغلاف
-                tk.Label(card, text=category.upper() if category else "GENERAL", font=("Arial", 8, "bold"),
-                         bg=self.card_bg, fg=self.sub_text).place(x=85, y=12)
-
-                title_text = title if len(title) < 20 else title[:18] + "..."
-                tk.Label(card, text=title_text, font=("Arial", 10, "bold"), bg=self.card_bg, fg=self.text_color).place(
-                    x=85, y=32)
-
-                author_text = f"By {author}" if len(author) < 20 else f"By {author[:15]}..."
-                tk.Label(card, text=author_text, font=("Arial", 9), bg=self.card_bg, fg=self.sub_text).place(x=85, y=55)
-
-                status_text = f"Status: {status}"
-                tk.Label(card, text=status_text, font=("Arial", 8), bg=self.card_bg,
-                         fg="#A93226" if status == "Borrowed" else "#196F3D").place(x=85, y=80)
+                self.create_book_card(self.cards_frame, row, 0, i)
 
         except mysql.connector.Error as e:
             messagebox.showerror("Error", str(e))
@@ -278,7 +338,7 @@ class BooksUI:
                   WHERE CAST(book_id AS CHAR) LIKE %s
                      OR title LIKE %s
                      OR author LIKE %s
-                     OR category LIKE %s \
+                     OR category LIKE %s
                   """
             val = "%" + keyword + "%"
             cursor.execute(sql, (val, val, val, val))
@@ -389,4 +449,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = BooksUI(root)
     root.mainloop()
-
