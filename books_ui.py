@@ -19,7 +19,7 @@ class BooksUI:
 
         self.root.configure(bg=self.bg_color)
         self.selected_id = None
-        self.all_records = []  
+        self.all_records = []
 
         style = ttk.Style()
         style.theme_use("clam")
@@ -50,75 +50,38 @@ class BooksUI:
         )
         input_frame.pack(fill="x", padx=20, pady=5)
 
-        tk.Label(input_frame, text="Book ID:", bg=self.bg_color, fg=self.text_color, font=("Arial", 10)).grid(row=0,
-                                                                                                              column=0,
-                                                                                                              padx=5,
-                                                                                                              pady=6,
-                                                                                                              sticky="w")
-        self.id_entry = tk.Entry(input_frame, width=22, bg="white", fg=self.text_color, relief="solid", bd=1)
-        self.id_entry.grid(row=0, column=1, padx=5, pady=6)
+        # الصف الأول: Title و Author
+        tk.Label(input_frame, text="Title *:", bg=self.bg_color, fg=self.text_color, font=("Arial", 10)).grid(row=0, column=0, padx=5, pady=6, sticky="w")
+        self.title_entry = tk.Entry(input_frame, width=28, bg="white", fg=self.text_color, relief="solid", bd=1)
+        self.title_entry.grid(row=0, column=1, padx=5, pady=6)
 
-        tk.Label(input_frame, text="Title *:", bg=self.bg_color, fg=self.text_color, font=("Arial", 10)).grid(row=0,
-                                                                                                              column=2,
-                                                                                                              padx=5,
-                                                                                                              pady=6,
-                                                                                                              sticky="w")
-        self.title_entry = tk.Entry(input_frame, width=22, bg="white", fg=self.text_color, relief="solid", bd=1)
-        self.title_entry.grid(row=0, column=3, padx=5, pady=6)
+        tk.Label(input_frame, text="Author *:", bg=self.bg_color, fg=self.text_color, font=("Arial", 10)).grid(row=0, column=2, padx=5, pady=6, sticky="w")
+        self.author_entry = tk.Entry(input_frame, width=28, bg="white", fg=self.text_color, relief="solid", bd=1)
+        self.author_entry.grid(row=0, column=3, padx=5, pady=6)
 
-        tk.Label(input_frame, text="Author *:", bg=self.bg_color, fg=self.text_color, font=("Arial", 10)).grid(row=1,
-                                                                                                               column=0,
-                                                                                                               padx=5,
-                                                                                                               pady=6,
-                                                                                                               sticky="w")
-        self.author_entry = tk.Entry(input_frame, width=22, bg="white", fg=self.text_color, relief="solid", bd=1)
-        self.author_entry.grid(row=1, column=1, padx=5, pady=6)
+        # الصف الثاني: Category و Status
+        tk.Label(input_frame, text="Category:", bg=self.bg_color, fg=self.text_color, font=("Arial", 10)).grid(row=1, column=0, padx=5, pady=6, sticky="w")
+        self.category_entry = tk.Entry(input_frame, width=28, bg="white", fg=self.text_color, relief="solid", bd=1)
+        self.category_entry.grid(row=1, column=1, padx=5, pady=6)
 
-        tk.Label(input_frame, text="Category:", bg=self.bg_color, fg=self.text_color, font=("Arial", 10)).grid(row=1,
-                                                                                                               column=2,
-                                                                                                               padx=5,
-                                                                                                               pady=6,
-                                                                                                               sticky="w")
-        self.category_entry = tk.Entry(input_frame, width=22, bg="white", fg=self.text_color, relief="solid", bd=1)
-        self.category_entry.grid(row=1, column=3, padx=5, pady=6)
-
-        tk.Label(input_frame, text="Status:", bg=self.bg_color, fg=self.text_color, font=("Arial", 10)).grid(row=2,
-                                                                                                             column=0,
-                                                                                                             padx=5,
-                                                                                                             pady=6,
-                                                                                                             sticky="w")
+        tk.Label(input_frame, text="Status:", bg=self.bg_color, fg=self.text_color, font=("Arial", 10)).grid(row=1, column=2, padx=5, pady=6, sticky="w")
         self.status_combo = ttk.Combobox(
             input_frame,
             values=["Available", "Borrowed"],
             state="readonly",
-            width=20
+            width=26
         )
-        self.status_combo.grid(row=2, column=1, padx=5, pady=6)
+        self.status_combo.grid(row=1, column=3, padx=5, pady=6)
         self.status_combo.set("Available")
 
         button_frame = tk.Frame(root, bg=self.bg_color)
         button_frame.pack(pady=10)
 
-        ttk.Button(button_frame, text="+ Add Book", command=self.add_book, style="Custom.TButton").grid(row=0, column=0,
-                                                                                                        padx=5, ipadx=5,
-                                                                                                        ipady=3)
-        ttk.Button(button_frame, text="Update Book", command=self.update_book, style="Custom.TButton").grid(row=0,
-                                                                                                            column=1,
-                                                                                                            padx=5,
-                                                                                                            ipadx=5,
-                                                                                                            ipady=3)
-        ttk.Button(button_frame, text="Delete Book", command=self.delete_book, style="Danger.TButton").grid(row=0,
-                                                                                                            column=2,
-                                                                                                            padx=5,
-                                                                                                            ipadx=5,
-                                                                                                            ipady=3)
-        ttk.Button(button_frame, text="Clear Form", command=self.clear_fields, style="Gray.TButton").grid(row=0,
-                                                                                                          column=3,
-                                                                                                          padx=5,
-                                                                                                          ipadx=5,
-                                                                                                          ipady=3)
+        ttk.Button(button_frame, text="+ Add Book", command=self.add_book, style="Custom.TButton").grid(row=0, column=0, padx=5, ipadx=5, ipady=3)
+        ttk.Button(button_frame, text="Update Book", command=self.update_book, style="Custom.TButton").grid(row=0, column=1, padx=5, ipadx=5, ipady=3)
+        ttk.Button(button_frame, text="Delete Book", command=self.delete_book, style="Danger.TButton").grid(row=0, column=2, padx=5, ipadx=5, ipady=3)
+        ttk.Button(button_frame, text="Clear Form", command=self.clear_fields, style="Gray.TButton").grid(row=0, column=3, padx=5, ipadx=5, ipady=3)
 
-        
         collection_header = tk.Frame(root, bg=self.bg_color)
         collection_header.pack(fill="x", padx=20, pady=(5, 5))
 
@@ -148,10 +111,8 @@ class BooksUI:
         self.search_entry = tk.Entry(search_frame, width=30, bg="white", fg=self.text_color, relief="solid", bd=1)
         self.search_entry.pack(side="left", padx=5)
 
-        ttk.Button(search_frame, text="Search", command=self.search_book, style="Custom.TButton").pack(side="left",
-                                                                                                       padx=3)
-        ttk.Button(search_frame, text="Show All", command=self.load_books, style="Gray.TButton").pack(side="left",
-                                                                                                      padx=3)
+        ttk.Button(search_frame, text="Search", command=self.search_book, style="Custom.TButton").pack(side="left", padx=3)
+        ttk.Button(search_frame, text="Show All", command=self.load_books, style="Gray.TButton").pack(side="left", padx=3)
 
         table_frame = tk.Frame(root, bg=self.bg_color)
         table_frame.pack(fill="both", expand=True, padx=20, pady=10)
@@ -185,7 +146,6 @@ class BooksUI:
         card.grid(row=grid_row, column=grid_col, padx=5, pady=2)
         card.pack_propagate(False)
 
-        
         cover_box = tk.Frame(card, bg=self.btn_color, width=65, height=85)
         cover_box.place(x=10, y=10)
         cover_box.pack_propagate(False)
@@ -201,7 +161,6 @@ class BooksUI:
             justify="center"
         ).pack(expand=True, padx=2, pady=2)
 
-        
         tk.Label(card, text=category.upper() if category else "GENERAL", font=("Arial", 8, "bold"),
                  bg=self.card_bg, fg=self.sub_text).place(x=85, y=12)
 
@@ -249,7 +208,6 @@ class BooksUI:
         canvas.pack(side="left", fill="both", expand=True, padx=20, pady=10)
         scrollbar.pack(side="right", fill="y")
 
-        
         for idx, row in enumerate(self.all_records):
             r = idx // 3
             c = idx % 3
@@ -266,7 +224,7 @@ class BooksUI:
             cursor = conn.cursor()
             cursor.execute("SELECT book_id, title, author, category, status FROM books")
             records = cursor.fetchall()
-            self.all_records = records  
+            self.all_records = records
 
             self.book_table.delete(*self.book_table.get_children())
             for row in records:
@@ -275,7 +233,6 @@ class BooksUI:
             for widget in self.cards_frame.winfo_children():
                 widget.destroy()
 
-          
             for i, row in enumerate(records[:3]):
                 self.create_book_card(self.cards_frame, row, 0, i)
 
@@ -286,20 +243,13 @@ class BooksUI:
             if conn and conn.is_connected(): conn.close()
 
     def add_book(self):
-        book_id = self.id_entry.get().strip()
         title = self.title_entry.get().strip()
         author = self.author_entry.get().strip()
         category = self.category_entry.get().strip()
         status = self.status_combo.get()
 
-        if not book_id or not title or not author:
-            messagebox.showwarning("Missing Information", "Please enter Book ID, Title and Author.")
-            return
-
-        try:
-            book_id = int(book_id)
-        except ValueError:
-            messagebox.showwarning("Invalid ID", "Book ID must be a number.")
+        if not title or not author:
+            messagebox.showwarning("Missing Information", "Please enter Title and Author.")
             return
 
         conn = None
@@ -310,8 +260,8 @@ class BooksUI:
                 messagebox.showerror("Database Error", "Could not connect to database.")
                 return
             cursor = conn.cursor()
-            sql = "INSERT INTO books (book_id, title, author, category, status) VALUES (%s, %s, %s, %s, %s)"
-            cursor.execute(sql, (book_id, title, author, category, status))
+            sql = "INSERT INTO books (title, author, category, status) VALUES (%s, %s, %s, %s)"
+            cursor.execute(sql, (title, author, category, status))
             conn.commit()
             messagebox.showinfo("Success", "Book added successfully!")
             self.clear_fields()
@@ -358,11 +308,7 @@ class BooksUI:
         selected = self.book_table.selection()
         if selected:
             values = self.book_table.item(selected[0], "values")
-            self.selected_id = values[0]
-            self.id_entry.config(state="normal", bg="white")
-            self.id_entry.delete(0, tk.END)
-            self.id_entry.insert(0, values[0])
-            self.id_entry.config(state="readonly", bg="#EBEBE4")
+            self.selected_id = values[0]  # تخزين المعرف الداخلي للتعديل والحذف
 
             self.title_entry.delete(0, tk.END)
             self.title_entry.insert(0, values[1])
@@ -434,8 +380,6 @@ class BooksUI:
 
     def clear_fields(self):
         self.selected_id = None
-        self.id_entry.config(state="normal", bg="white")
-        self.id_entry.delete(0, tk.END)
         self.title_entry.delete(0, tk.END)
         self.author_entry.delete(0, tk.END)
         self.category_entry.delete(0, tk.END)
