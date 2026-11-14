@@ -12,6 +12,7 @@ btn_color = "#5C4033"
 text_color = "#3E2723"
 sub_text = "#7A6858"
 
+
 def get_stats():
     conn = get_connection()
     total_b, total_m, total_br = 0, 0, 0
@@ -34,11 +35,13 @@ def get_stats():
                 conn.close()
     return total_b, total_m, total_br
 
+
 def refresh_home_stats():
     b_count, m_count, br_count = get_stats()
     lbl_books_val.config(text=str(b_count))
     lbl_members_val.config(text=str(m_count))
     lbl_borrow_val.config(text=str(br_count))
+
 
 def create_home_page(notebook):
     global lbl_books_val, lbl_members_val, lbl_borrow_val
@@ -48,7 +51,7 @@ def create_home_page(notebook):
 
     tk.Label(
         tab_home,
-        text="BOOKHAVEN",
+        text="BOOK HEAVEN",
         font=("Arial", 22, "bold"),
         bg=bg_color,
         fg=text_color
@@ -94,6 +97,7 @@ def create_home_page(notebook):
     refresh_home_stats()
     return tab_home
 
+
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("BookHeaven - Library Management System")
@@ -118,14 +122,29 @@ if __name__ == "__main__":
 
     tab_members = tk.Frame(notebook, bg=bg_color)
     notebook.add(tab_members, text=" Members Management ")
-    MembersUI(tab_members)
+    members_app = MembersUI(tab_members)
 
     tab_books = tk.Frame(notebook, bg=bg_color)
     notebook.add(tab_books, text=" Books Management ")
-    BooksUI(tab_books)
+    books_app = BooksUI(tab_books)
 
     tab_borrow = tk.Frame(notebook, bg=bg_color)
     notebook.add(tab_borrow, text=" Borrowings Management ")
-    BorrowingsApp(tab_borrow)
+    borrowings_app = BorrowingsApp(tab_borrow)
+
+    def on_tab_changed(event):
+        selected_tab = notebook.tab(notebook.select(), "text").strip()
+        if selected_tab == "Borrowings Management":
+            borrowings_app.refresh_dropdowns()
+            borrowings_app.load_active_borrowings()
+        elif selected_tab == "Members Management":
+            members_app.load_members()
+        elif selected_tab == "Books Management":
+            books_app.load_books()
+        elif selected_tab == "Home":
+            refresh_home_stats()
+
+    notebook.bind("<<NotebookTabChanged>>", on_tab_changed)
 
     root.mainloop()
+
